@@ -57,9 +57,13 @@ async function addMedia(imdbId) {
     case mediaTypes.movie:
       console.log(`IMDB-${imdbId} determined to be movie, searching Radarr`);
       await addToRadarr(tmdbId);
+      break;
     case mediaTypes.series:
       console.log(`IMDB-${imdbId} determined to be series, searching Sonarr`);
       await addToSonarr(tmdbId);
+      break;
+    default:
+      console.error(`IMDB-${imdbId}`, "Unknown media type");
   }
 }
 
@@ -109,6 +113,8 @@ async function addToSonarr(tmdbId) {
       );
     return res.json();
   });
+  if (!seriesFromLookup)
+    throw new Error(`No movies found matching TMDB Id: ${tmdbId}`);
 
   if (!!seriesFromLookup?.path) throw new Error(errors.ALREADY_EXISTS);
 
@@ -122,7 +128,7 @@ async function addToSonarr(tmdbId) {
       qualityProfileId: 6, // 720/1080
       languageProfileId: 1, // en
       rootFolderPath: SONARR_ROOT_PATH,
-      path: `${SONARR_ROOT_PATH}/${seriesFromLookup.folder}`,
+      path: `${SONARR_ROOT_PATH}/${seriesFromLookup?.folder}`,
       addOptions: {
         monitor: "firstSeason",
         searchForMissingEpisodes: true,
@@ -172,7 +178,7 @@ async function addToRadarr(tmdbId) {
       qualityProfileId: 6, // 720/1080
       languageProfileId: 1, // en
       rootFolderPath: RADARR_ROOT_PATH,
-      path: `${RADARR_ROOT_PATH}/${movieFromLookup.folder}`,
+      path: `${RADARR_ROOT_PATH}/${movieFromLookup?.folder}`,
       minimumAvailability: "announced",
       monitored: true,
       addOptions: {
