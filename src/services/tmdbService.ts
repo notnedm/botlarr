@@ -1,10 +1,10 @@
 import { MediaTypes } from "../types";
 
-const defaultHttpContentHeaders = {
+const defaultHeaders = (): Record<string, string> => ({
   accept: "application/json",
   "Content-Type": "application/json",
   Authorization: `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
-};
+});
 
 export async function determineMediaType(
   imdbId: string
@@ -13,10 +13,11 @@ export async function determineMediaType(
   const { movie_results: movieResults, tv_results: tvResults } = await fetch(
     `${TMDB_API_URL}/find/${imdbId}?external_source=imdb_id`,
     {
-      headers: defaultHttpContentHeaders,
+      headers: defaultHeaders(),
     }
-  ).then((res) => {
-    if (!res.ok) throw new Error(JSON.stringify(res.json()));
+  ).then(async (res) => {
+    if (!res.ok)
+      throw new Error(`${res.status} - ${JSON.stringify(await res.json())}`);
     return res.json();
   });
 

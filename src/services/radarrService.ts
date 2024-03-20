@@ -1,25 +1,22 @@
-import { Errors } from "../types";
+import { Errors, Movie } from "../types";
 
-const defaultHttpContentHeaders = {
+const defaultHeaders = (): Record<string, string> => ({
   accept: "application/json",
+  "Content-Type": "application/json",
   "X-Api-Key": process.env.RADARR_API_KEY,
-};
+});
 
 export async function addToRadarr(tmdbId: number): Promise<void> {
   const { RADARR_API_URL, RADARR_ROOT_PATH } = process.env;
 
-  const [movieFromLookup] = await fetch(
+  const [movieFromLookup]: Movie[] = await fetch(
     `${RADARR_API_URL}/v3/movie/lookup?term=tmdbId%3A${tmdbId}`,
     {
-      headers: defaultHttpContentHeaders,
+      headers: defaultHeaders(),
     }
-  ).then((res) => {
+  ).then(async (res) => {
     if (!res.ok)
-      throw new Error(
-        res.status === 404
-          ? `No movies found matching TMDB Id: ${tmdbId}`
-          : JSON.stringify(res.json())
-      );
+      throw new Error(`${res.status} - ${JSON.stringify(await res.json())}`);
     return res.json();
   });
   if (!movieFromLookup)
@@ -30,7 +27,7 @@ export async function addToRadarr(tmdbId: number): Promise<void> {
 
   await fetch(`${RADARR_API_URL}/v3/movie`, {
     method: "POST",
-    headers: defaultHttpContentHeaders,
+    headers: defaultHeaders(),
     body: JSON.stringify({
       ...movieFromLookup,
       tags: [8], // botlarr
@@ -45,8 +42,9 @@ export async function addToRadarr(tmdbId: number): Promise<void> {
         searchForMovie: true,
       },
     }),
-  }).then((res) => {
-    if (!res.ok) throw new Error(JSON.stringify(res.json()));
+  }).then(async (res) => {
+    if (!res.ok)
+      throw new Error(`${res.status} - ${JSON.stringify(await res.json())}`);
     return res.json();
   });
 }

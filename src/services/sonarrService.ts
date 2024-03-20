@@ -1,9 +1,10 @@
 import { Errors, Series } from "../types";
 
-const defaultHttpContentHeaders = {
+const defaultHeaders = (): Record<string, string> => ({
   accept: "application/json",
+  "Content-Type": "application/json",
   "X-Api-Key": process.env.SONARR_API_KEY,
-};
+});
 
 export async function addToSonarr(tmdbId: number): Promise<void> {
   const { SONARR_API_URL, SONARR_ROOT_PATH } = process.env;
@@ -11,25 +12,21 @@ export async function addToSonarr(tmdbId: number): Promise<void> {
   const [seriesFromLookup]: Series[] = await fetch(
     `${SONARR_API_URL}/v3/series/lookup?term=tmdbId%3A${tmdbId}`,
     {
-      headers: defaultHttpContentHeaders,
+      headers: defaultHeaders(),
     }
-  ).then((res) => {
+  ).then(async (res) => {
     if (!res.ok)
-      throw new Error(
-        res.status === 404
-          ? `No series found matching TMDB Id: ${tmdbId}`
-          : JSON.stringify(res.json())
-      );
+      throw new Error(`${res.status} - ${JSON.stringify(await res.json())}`);
     return res.json();
   });
   if (!seriesFromLookup)
-    throw new Error(`No movies found matching TMDB Id: ${tmdbId}`);
+    throw new Error(`No series found matching TMDB Id: ${tmdbId}`);
 
   if (!!seriesFromLookup?.path) throw new Error(Errors.ALREADY_EXISTS);
 
   await fetch(`${SONARR_API_URL}/v3/series`, {
     method: "POST",
-    headers: defaultHttpContentHeaders,
+    headers: defaultHeaders(),
     body: JSON.stringify({
       ...seriesFromLookup,
       tags: [8], // botlarr
@@ -44,8 +41,9 @@ export async function addToSonarr(tmdbId: number): Promise<void> {
         searchForCutoffUnmetEpisodes: true,
       },
     }),
-  }).then((res) => {
-    if (!res.ok) throw new Error(JSON.stringify(res.json()));
+  }).then(async (res) => {
+    if (!res.ok)
+      throw new Error(`${res.status} - ${JSON.stringify(await res.json())}`);
     return res.json();
   });
 }

@@ -2,7 +2,8 @@ export interface Movie {
   id: number;
   imdbId: string;
   tmdbId: number;
-  movieFile?: string;
+  folder: string;
+  movieFile?: MovieFile;
 }
 
 export interface MovieFile {
