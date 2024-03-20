@@ -1,0 +1,6 @@
+services:
+  botlarr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: botlarr
