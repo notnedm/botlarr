@@ -3,6 +3,6 @@ export enum MediaTypes {
   Series = 1,
 }
 
-export enum errors {
+export enum Errors {
   ALREADY_EXISTS = "KNOWN_ERR_ALREADY_EXISTS",
 }
