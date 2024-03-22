@@ -4,3 +4,4 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: botlarr
+    network_mode: host
