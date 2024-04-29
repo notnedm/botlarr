@@ -20,7 +20,8 @@ export async function startDiscordListener(): Promise<void> {
   client.login(process.env.DISCORD_CLIENT_TOKEN);
 
   client.on("messageCreate", async (msg: Message<boolean>): Promise<void> => {
-    if (!msg.content.includes("https://www.imdb.com/title/tt")) return;
+    if (!/^(https:\/\/)*((m|www)\.)?imdb\.com\/title\/tt/.test(msg.content))
+      return;
     try {
       const imdbId = /tt\d+/.exec(msg.content)[0];
       console.log(`IMDB-${imdbId}: Start search`);
@@ -37,13 +38,16 @@ export async function startDiscordListener(): Promise<void> {
 
 async function addMedia(imdbId: string): Promise<void> {
   const [mediaType, tmdbId] = await determineMediaType(imdbId);
+  const { SONARR_API_URL, RADARR_API_URL } = process.env;
 
   console.debug(`IMDB-${imdbId}: Determined to be ${MediaTypes[mediaType]}`);
   switch (mediaType) {
     case MediaTypes.Movie:
+      if (!RADARR_API_URL) throw new Error(Errors.SERVICE_NOT_CONFIGURED);
       await addToRadarr(tmdbId);
       break;
     case MediaTypes.Series:
+      if (!SONARR_API_URL) throw new Error(Errors.SERVICE_NOT_CONFIGURED);
       await addToSonarr(tmdbId);
       break;
     default:
@@ -64,6 +68,8 @@ function getErrorResponse(err: Error): [emoji: string, errorMsg: string] {
   switch (err.message) {
     case Errors.ALREADY_EXISTS:
       return ["✅", "This is already being monitored"];
+    case Errors.SERVICE_NOT_CONFIGURED:
+      return ["❌", "Required service is not configured to monitor this media"];
     default:
       return ["⚠️", `Error reference: ${errRef}`];
   }

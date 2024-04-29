@@ -7,7 +7,14 @@ const defaultHeaders = (): Record<string, string> => ({
 });
 
 export async function addToSonarr(tmdbId: number): Promise<void> {
-  const { SONARR_API_URL, SONARR_ROOT_PATH } = process.env;
+  const {
+    SONARR_API_URL,
+    SONARR_ROOT_PATH,
+    SONARR_TAGS = "",
+    SONARR_QUALITY_PROFILE_ID = 1,
+    SONARR_LANGUAGE_PROFILE_ID = 1,
+    SONARR_MONITOR = "all",
+  } = process.env;
 
   const [seriesFromLookup]: Series[] = await fetch(
     `${SONARR_API_URL}/v3/series/lookup?term=tmdbId%3A${tmdbId}`,
@@ -29,14 +36,14 @@ export async function addToSonarr(tmdbId: number): Promise<void> {
     headers: defaultHeaders(),
     body: JSON.stringify({
       ...seriesFromLookup,
-      tags: [8], // botlarr
       seasonFolder: true,
-      qualityProfileId: 6, // 720/1080
-      languageProfileId: 1, // en
+      tags: SONARR_TAGS?.split(",") ?? [],
+      qualityProfileId: SONARR_QUALITY_PROFILE_ID,
+      languageProfileId: SONARR_LANGUAGE_PROFILE_ID,
       rootFolderPath: SONARR_ROOT_PATH,
       path: `${SONARR_ROOT_PATH}/${seriesFromLookup?.folder}`,
       addOptions: {
-        monitor: "firstSeason",
+        monitor: SONARR_MONITOR,
         searchForMissingEpisodes: true,
         searchForCutoffUnmetEpisodes: true,
       },

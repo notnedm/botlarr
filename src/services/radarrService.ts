@@ -7,7 +7,15 @@ const defaultHeaders = (): Record<string, string> => ({
 });
 
 export async function addToRadarr(tmdbId: number): Promise<void> {
-  const { RADARR_API_URL, RADARR_ROOT_PATH } = process.env;
+  const {
+    RADARR_API_URL,
+    RADARR_ROOT_PATH,
+    RADARR_TAGS = "",
+    RADARR_QUALITY_PROFILE_ID = 1,
+    RADARR_LANGUAGE_PROFILE_ID = 1,
+    RADARR_MIN_AVAILABILITY = "announced",
+    RADARR_MONITOR = "movieOnly",
+  } = process.env;
 
   const [movieFromLookup]: Movie[] = await fetch(
     `${RADARR_API_URL}/v3/movie/lookup?term=tmdbId%3A${tmdbId}`,
@@ -30,15 +38,15 @@ export async function addToRadarr(tmdbId: number): Promise<void> {
     headers: defaultHeaders(),
     body: JSON.stringify({
       ...movieFromLookup,
-      tags: [8], // botlarr
-      qualityProfileId: 6, // 720/1080
-      languageProfileId: 1, // en
+      tags: RADARR_TAGS?.split(",") ?? [],
+      qualityProfileId: RADARR_QUALITY_PROFILE_ID,
+      languageProfileId: RADARR_LANGUAGE_PROFILE_ID,
       rootFolderPath: RADARR_ROOT_PATH,
       path: `${RADARR_ROOT_PATH}/${movieFromLookup?.folder}`,
-      minimumAvailability: "announced",
+      minimumAvailability: RADARR_MIN_AVAILABILITY,
       monitored: true,
       addOptions: {
-        monitor: "movieOnly",
+        monitor: RADARR_MONITOR,
         searchForMovie: true,
       },
     }),

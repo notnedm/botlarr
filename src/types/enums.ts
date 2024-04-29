@@ -5,4 +5,5 @@ export enum MediaTypes {
 
 export enum Errors {
   ALREADY_EXISTS = "KNOWN_ERR_ALREADY_EXISTS",
+  SERVICE_NOT_CONFIGURED = "KNOWN_ERR_SERVICE_NOT_CONFIGURED",
 }

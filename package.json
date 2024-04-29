@@ -1,14 +1,13 @@
 {
   "name": "botlarr",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "dist/app.js",
   "author": "gryph-n",
   "license": "MIT",
   "scripts": {
     "build": "npx tsc",
     "start": "npx tsc && node dist/app.js",
-    "lint": "npx eslint . --ext .ts",
-    "deploy": "scripts/deploy.sh"
+    "lint": "npx eslint . --ext .ts"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
